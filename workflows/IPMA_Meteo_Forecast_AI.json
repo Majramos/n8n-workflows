@@ -1,0 +1,572 @@
+{
+  "name": "IPMA_Meteo_Forecast_AI",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -672,
+        288
+      ],
+      "id": "f2ea8b04-69ba-405b-9bea-2b8f7954f2a3",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        224,
+        384
+      ],
+      "id": "4fd85a2e-edbd-4bd9-b5b6-48836238f284",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        224,
+        576
+      ],
+      "id": "28f3e0fe-21c6-492c-8d73-5e8d55aded63",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "url": "https://api.ipma.pt/open-data/distrits-islands.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "438d92be-216b-49fb-a0ec-107ef45256c3",
+      "name": "distrits-islands"
+    },
+    {
+      "parameters": {
+        "url": "https://api.ipma.pt/open-data/forecast/meteorology/cities/daily/hp-daily-forecast-day0.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        0,
+        384
+      ],
+      "id": "6416614c-3efa-489b-a8f2-3db51f224785",
+      "name": "hp-daily-forecast"
+    },
+    {
+      "parameters": {
+        "url": "https://api.ipma.pt/open-data/weather-type-classe.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        0,
+        192
+      ],
+      "id": "7f6c56fb-ec54-4259-b793-18fcac88edb9",
+      "name": "weather-type-classe"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        224,
+        192
+      ],
+      "id": "ed042f8a-54c0-4ffc-90e1-2aa25704952a",
+      "name": "Split Out2"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "013dae8b-0b8c-4d3a-b0a1-b878bfbf74b4",
+      "name": "Split Out3"
+    },
+    {
+      "parameters": {
+        "url": "https://api.ipma.pt/open-data/wind-speed-daily-classe.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        0,
+        576
+      ],
+      "id": "5e8222a8-94b1-4f09-a095-4b6165c80c67",
+      "name": "wind-speed-daily-classe"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        384
+      ],
+      "id": "37df4469-1d76-4722-b5b2-75e290109097",
+      "name": "agg"
+    },
+    {
+      "parameters": {
+        "mode": "combineBySql",
+        "numberInputs": 5,
+        "query": "SELECT\n  input3.precipitaProb\n  , input3.tMin AS minimum_temperature\n  , input3.tMax AS maximum_temperature\n  , input2.descWeatherTypeEN\n  , input1.local\n  , input4.descClassWindSpeedDailyEN\n  , input5.items AS weather_warnings\nFROM input3\nLEFT JOIN\n  input2\n  ON input2.idWeatherType = input3.idWeatherType\nLEFT JOIN\n  input1\n  ON input1.globalIdLocal = input3.globalIdLocal\nLEFT JOIN\n  input4\n  ON input4.classWindSpeed = input3.classWindSpeed\nLEFT JOIN\n  input5\n  ON input5.idAreaAviso = input1.idAreaAviso",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        448,
+        336
+      ],
+      "id": "f7b57c59-6d7d-475b-915a-73067f36b16c",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "=",
+        "options": {
+          "avatar_url": "https://api.ipma.pt/img/www/ipma.17-vertical-logo.png",
+          "username": "Daily Weather Forecast"
+        },
+        "embeds": {
+          "values": [
+            {
+              "description": "={{ $json.candidates[0].content.parts[0].text }}",
+              "author": "=",
+              "color": "#7E9200",
+              "title": "=Todays Weather Forecast"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        384
+      ],
+      "id": "9c721e63-3a3b-4c98-b167-4f382e1f2ed2",
+      "name": "Discord",
+      "webhookId": "dce9c74f-8ba3-4a8e-90f8-9369d8dd5771",
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "B9WMKGDEV1PhXwep",
+          "name": "Discord Weather Channel"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8,
+              "triggerAtMinute": 30
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -672,
+        480
+      ],
+      "id": "5c1c4d36-9fef-4efa-b4ec-c7213d7ab37d",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://api.ipma.pt/open-data/forecast/warnings/warnings_www.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -224,
+        768
+      ],
+      "id": "6af4f527-22fd-468e-b4b7-309799059eff",
+      "name": "warnings"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a24fbbbc-e95d-440e-b254-26ee0d77e38d",
+              "leftValue": "={{ $json.awarenessLevelID }}",
+              "rightValue": "green",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        768
+      ],
+      "id": "ea122710-b6c2-4d2b-8f8f-c9bdf8df3e00",
+      "name": "Remove green warnings"
+    },
+    {
+      "parameters": {
+        "jsCode": "const grouped = {};\n\nfor (const item of items) {\n  const key = item.json.idAreaAviso;\n\n  if (!grouped[key]) {\n    grouped[key] = [];\n  }\n\n  grouped[key].push(item.json);\n}\n\nreturn Object.entries(grouped).map(([key, value]) => ({\n  json: {\n    idAreaAviso: key,\n    items: value,\n  },\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        768
+      ],
+      "id": "a4197e4a-56c2-454e-b103-efa1f6fa9959",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.8-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.8-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "<Task>  \nGenerate a daily weather message, in English, summarizing the forecast for today.  \n</Task>  \n\n<Goal>  \n- Open with an overview of the weather across Portugal.  \n- Include national weather patterns, highlighting the expected minimum and maximum temperatures and where they will be observed.  \n- Mention active weather warnings and the most important expected impact.  \n- Then provide details for Lisbon and Leiria.  \n- End with a short practical recommendation only if it makes sense.  \n</Goal>  \n\n<Rules>  \n- Prioritize real active warnings.  \n- Do not invent values or descriptions.  \n- If there are no warnings, say “No relevant weather warnings today” or a natural equivalent.  \n- Summarize national patterns concisely without listing too many locations, but always include the national minimum and maximum temperatures and their locations.  \n- Clearly separate the national overview from the Lisbon and Leiria details with a paragraph break.  \n- For Lisbon and Leiria, mention sky conditions, minimum and maximum temperatures, precipitation probability, and wind, if available.  \n- If there is relevant local risk, highlight it.  \n- Keep the message natural, concise, and ready to send.  \n- No markdown, no bullet points, no JSON, no headings.  \n</Rules>  \n\n<Output>  \nReturn only the final message text.  \n</Output>"
+            },
+            {
+              "content": "=<Data>\n{{ JSON.stringify($json.weather_data) }}\n</Data> "
+            }
+          ]
+        },
+        "simplify": false,
+        "options": {
+          "systemMessage": "You are a weather assistant for Portugal. Your task is to generate a daily message, in English, based on IPMA data.",
+          "candidateCount": 1,
+          "maxToolsIterations": 2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        896,
+        384
+      ],
+      "id": "e8a41ea2-0776-4513-ac73-cbdcd311dbe0",
+      "name": "Message a model",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "NDcOf8eg0hjvxCIo",
+          "name": "Google Gemini Weather Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "weather_data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        672,
+        384
+      ],
+      "id": "a975d395-3414-4681-8cd2-fac5f931eea8",
+      "name": "Aggregate"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "agg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "hp-daily-forecast": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "weather-type-classe": {
+      "main": [
+        [
+          {
+            "node": "Split Out2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "distrits-islands": {
+      "main": [
+        [
+          {
+            "node": "Split Out3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "wind-speed-daily-classe": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agg": {
+      "main": [
+        [
+          {
+            "node": "distrits-islands",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "weather-type-classe",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "hp-daily-forecast",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "wind-speed-daily-classe",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "warnings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out3": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "agg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "warnings": {
+      "main": [
+        [
+          {
+            "node": "Remove green warnings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove green warnings": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "pbDCwcNo30r4kcxe"
+  },
+  "versionId": "efcb8695-f270-4632-98d5-85e6cf1b2541",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1c90d2bfc32d139315a35e117cabd190844b3f7e50d6f790922f132e752e10b3"
+  },
+  "id": "UmksfGLPSxg6sEgB",
+  "tags": [
+    {
+      "updatedAt": "2026-05-24T23:00:00.573Z",
+      "createdAt": "2026-05-24T23:00:00.573Z",
+      "id": "8Qd3qjyFiYtrZhQL",
+      "name": "IPMA"
+    },
+    {
+      "updatedAt": "2026-05-24T23:00:00.577Z",
+      "createdAt": "2026-05-24T23:00:00.577Z",
+      "id": "PGmo2KnVaUXlHP4Z",
+      "name": "AI"
+    },
+    {
+      "updatedAt": "2026-05-24T23:00:00.575Z",
+      "createdAt": "2026-05-24T23:00:00.575Z",
+      "id": "MbFuVtCeiFOdeABj",
+      "name": "Gemini"
+    }
+  ]
+}
