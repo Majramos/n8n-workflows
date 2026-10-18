@@ -1,0 +1,130 @@
+{
+  "name": "N8N_errors",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\"execution\":{\"id\":\"231\",\"url\":\"https://n8n.example.com/execution/231\",\"retryOf\":\"34\",\"error\":{\"message\":\"Example Error Message\",\"stack\":\"Stacktrace\"},\"lastNodeExecuted\":\"Node With Error\",\"mode\":\"manual\"},\"workflow\":{\"id\":\"1\",\"name\":\"Example Workflow\"}}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -48,
+        -96
+      ],
+      "id": "3d3a30a1-aebc-493f-858c-1f933513d82e",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "=",
+        "options": {},
+        "embeds": {
+          "values": [
+            {
+              "description": "={{ $json.workflow.name }}\n{{ $json.execution.id }}\n{{ $json.execution.error.message }}",
+              "color": "#BA0000",
+              "title": "Error"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "81698b15-3e17-4c72-bfe4-0b1b02e70ff5",
+      "name": "Discord",
+      "webhookId": "71d8a9c5-4d46-4bf0-b279-79690d48bfea",
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "i0aZGhIpdPUGsTNv",
+          "name": "Discord N8N Error Channel"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        96
+      ],
+      "id": "254a13f7-99a8-42b0-a6c4-536749cb5b79",
+      "name": "Error Trigger"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "execution": {
+            "id": "231",
+            "url": "https://n8n.example.com/execution/231",
+            "retryOf": "34",
+            "error": {
+              "message": "Example Error Message",
+              "stack": "Stacktrace"
+            },
+            "lastNodeExecuted": "Node With Error",
+            "mode": "manual"
+          },
+          "workflow": {
+            "id": "1",
+            "name": "Example Workflow"
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "7617f12c-f265-45cc-a6f9-ac1938397fbb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1c90d2bfc32d139315a35e117cabd190844b3f7e50d6f790922f132e752e10b3"
+  },
+  "id": "pbDCwcNo30r4kcxe",
+  "tags": [
+    {
+      "updatedAt": "2026-05-24T22:56:44.663Z",
+      "createdAt": "2026-05-24T22:56:44.663Z",
+      "id": "TK7TM2jsff6XfvAf",
+      "name": "Core"
+    }
+  ]
+}
