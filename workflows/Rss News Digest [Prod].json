@@ -1,0 +1,768 @@
+{
+  "name": "Rss News Digest [Prod]",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://www.rtp.pt/noticias/rss",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -1120,
+        256
+      ],
+      "id": "a3bad0e1-f8de-4bf3-b1e5-5f4466236613",
+      "name": "RSS Read",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "alwaysOutputData": false,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 * * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1344,
+        144
+      ],
+      "id": "a79c234c-9442-4acb-9c0b-26b68deec3bb",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dd5977e6-34ed-4d15-a2ee-a193ff48e5ef",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "346235f8-d1e9-431f-9d66-f2fa0a54b4e5",
+              "name": "pub_date",
+              "value": "={{ $json.pubDate }}",
+              "type": "string"
+            },
+            {
+              "id": "c6e25c9a-6f9c-45ca-970d-089b5a33f3e9",
+              "name": "content",
+              "value": "={{ $json.contentSnippet }}",
+              "type": "string"
+            },
+            {
+              "id": "e149f878-e13f-4d95-b3f5-7af48d55ce03",
+              "name": "Source",
+              "value": "RTP - Rádio e Televisão de Portugal",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -448,
+        256
+      ],
+      "id": "debbed21-78b7-482a-b893-9d545cdc82e1",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "=",
+        "options": {
+          "username": "News Digest"
+        },
+        "embeds": {
+          "values": [
+            {
+              "description": "={{ $json.output.news_digest }}",
+              "author": "={{ $json.output.source }}",
+              "color": "#E4FFA7",
+              "title": "="
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        912,
+        144
+      ],
+      "id": "c02f4653-08f2-4d5a-bd77-f7e5d2a80e6c",
+      "name": "Discord",
+      "webhookId": "f8237a49-6941-462b-b941-27ec07de523e",
+      "executeOnce": true,
+      "retryOnFail": true,
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "tfGRXrJGbpfAJLp7",
+          "name": "Discord News Chanel"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5db88b5a-1650-4b48-b034-a8aa7897ed68",
+              "leftValue": "={{ $json.pubDate }}",
+              "rightValue": "={{ $now.minus(1,'hour') }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "after"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -672,
+        256
+      ],
+      "id": "fbc9d0d1-37dc-45ee-9763-41f6c1c0c323",
+      "name": "Time filter",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4608a37c-3809-4ed6-b9f1-0aac92f9ec4f",
+              "leftValue": "={{ $json.categories[0] }}",
+              "rightValue": "País",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "769945dc-fd39-4336-92db-1ff98169da90",
+              "leftValue": "={{ $json.categories[0] }}",
+              "rightValue": "Mundo",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "490a9cce-d516-41cf-a4f6-1cd69d0d3860",
+              "leftValue": "={{ $json.categories[0] }}",
+              "rightValue": "Economia",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "b163822a-f05a-4173-a7a0-0e581638ab17",
+              "leftValue": "={{ $json.categories[0] }}",
+              "rightValue": "Política",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -896,
+        256
+      ],
+      "id": "a474ee64-8be0-455d-9ea4-1cc813279dbb",
+      "name": "Category filter",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create a clustered news digest from the articles in <Data> section.\n\n# Instructions:\n- Translate all content to English if needed.\n- Group similar news into thematic paragraphs.\n- Write a continuous, well-flowing summary.\n- Avoid redundancy and keep it concise.\n\nExample input:\n[\n  {\"title\":\"Example title\",\"content\":\"Example article text\"},\n  {\"title\":\"Example title\",\"content\":\"Example article text\"}\n]\n\nExample output:\nOne short paragraph only, no headings, no bullets, no line breaks.\n\n\n<Data>\n[\n{{ JSON.stringify($json) }}\n]\n</Data>",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "You are a news summarization and clustering assistant. \n\nRequirements:\n- Translate all article content into English before processing.\n- Cluster similar articles by theme.\n- Write exactly one continuous English digest.\n- The output must be plain text only.\n- Do not use headings, section titles, bullets, numbering, labels, or markdown.\n- Do not split the output into multiple sections.\n- Do not add meta commentary, prefaces, or explanations.\n- Separate different themes only with a blank line between paragraphs.\n- Keep each paragraph focused on one theme.\n- Do not repeat the same facts across paragraphs.\n- Be concise, factual, and neutral.\n- If multiple articles belong to the same theme, merge them into one paragraph.\n\nOutput rules:\n- Return only the digest text.\n- Use 1 to 4 paragraphs total.\n- Each paragraph must be 2 to 4 sentences.\n- Never output anything other than the digest."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        256,
+        304
+      ],
+      "id": "455473eb-0611-403b-bb5c-20ae70db4f7d",
+      "name": "AI Agent",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"news_digest\": {\n\t\t\t\"type\": \"string\"\n\t\t}\n\t}\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        512,
+        528
+      ],
+      "id": "d83fe8b5-bd48-43aa-bc9b-71fc8f48b449",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "52f3286e-73cc-4cd6-8700-a9049d82fd10",
+              "leftValue": "={{ $json.categories[0] }}",
+              "rightValue": "Política",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "c016de33-d450-4dbc-804c-88d4af609598",
+              "leftValue": "={{ $json.categories[0] }}",
+              "rightValue": "Economia",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "6699038d-35ec-4eca-a5ce-9361d99f1e7e",
+              "leftValue": "={{ $json.categories[0] }}",
+              "rightValue": "=Mundo",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "48f812fa-dfcb-4db9-a9e5-2acd027a4baf",
+              "leftValue": "={{ $json.categories[0] }}",
+              "rightValue": "País",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -896,
+        48
+      ],
+      "id": "0a16f06e-3bf4-4bf5-8089-0a72b1ce1bca",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "url": "https://www.noticiasaominuto.com/rss/ultima-hora",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -1120,
+        48
+      ],
+      "id": "0d9c2041-be9f-4c6b-8199-0eb8b7bdc62a",
+      "name": "RSS Noticias ao Minuto"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0bfb1fe2-43ab-41ab-ba31-13f069903398",
+              "leftValue": "={{ $json.pubDate }}",
+              "rightValue": "={{ $now.minus(1,'hour') }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "after"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -672,
+        48
+      ],
+      "id": "62ee3fd8-179f-4325-aff5-a1e6100076aa",
+      "name": "Filter1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1374704e-ea5d-4f51-81c1-c158238db8d7",
+              "name": "title",
+              "value": "={{ $json.title.replace(/\\s+/g, ' ').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "b81d031b-d817-4bd8-91f2-9105a649696a",
+              "name": "pub_date",
+              "value": "={{ $json.pubDate }}",
+              "type": "string"
+            },
+            {
+              "id": "641a40cb-62ef-4d7e-8244-028de8dffd68",
+              "name": "content",
+              "value": "={{ $json.title.replace(/\\s+/g, ' ').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "8dbf8d58-9734-4cc8-91c2-cd5357f99e31",
+              "name": "Source",
+              "value": "Noticias ao Minuto",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -448,
+        48
+      ],
+      "id": "b67ba554-edd7-4b03-96e7-d9ab7fa50179",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "news",
+        "include": "specifiedFields",
+        "fieldsToInclude": "content",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        0,
+        304
+      ],
+      "id": "8fc4d087-dd2e-4ce6-b12a-bbed6ad8cbb7",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -224,
+        144
+      ],
+      "id": "d6995b47-b3f9-4f81-9a23-0c2d6b13c51c",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "Source"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "323c56dc-3b72-4b55-9488-949a55b5cb9e",
+      "name": "Aggregate source"
+    },
+    {
+      "parameters": {
+        "jsCode": "const sources = $input.first().json.Source;\nreturn [\n  {\n    json: {\n      output: {\n        source: [...new Set(sources)].join(', ')\n        }\n      },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        0
+      ],
+      "id": "a9555c1d-2a94-4d31-a125-fb86f3f6bb55",
+      "name": "Distinct Sources"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        688,
+        144
+      ],
+      "id": "33ad2e3f-cbb4-42c6-ac8e-10b23ba84f0c",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        352,
+        528
+      ],
+      "id": "9758a0e8-00e7-4ffa-87d4-7cefc558c15b",
+      "name": "Gemini Flash Lite",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "6dRCc5SvoJ0caqAm",
+          "name": "Google Gemini News key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-latest",
+        "options": {
+          "maxOutputTokens": 2048
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        224,
+        528
+      ],
+      "id": "ceb2a0bf-b12c-4aba-90d3-5d6d588643e1",
+      "name": "Gemini Flash",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "6dRCc5SvoJ0caqAm",
+          "name": "Google Gemini News key"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Category filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS Noticias ao Minuto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Time filter": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Category filter": {
+      "main": [
+        [
+          {
+            "node": "Time filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "RSS Noticias ao Minuto": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Filter1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Aggregate source",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate source": {
+      "main": [
+        [
+          {
+            "node": "Distinct Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Distinct Sources": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Flash Lite": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Gemini Flash": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "pbDCwcNo30r4kcxe",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "1abdee50-410e-46e9-aed1-e23b20d33f8d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1c90d2bfc32d139315a35e117cabd190844b3f7e50d6f790922f132e752e10b3"
+  },
+  "id": "2HgL7hIWpoKE9cFN",
+  "tags": [
+    {
+      "updatedAt": "2026-05-24T23:00:00.577Z",
+      "createdAt": "2026-05-24T23:00:00.577Z",
+      "id": "PGmo2KnVaUXlHP4Z",
+      "name": "AI"
+    },
+    {
+      "updatedAt": "2026-05-24T23:00:00.575Z",
+      "createdAt": "2026-05-24T23:00:00.575Z",
+      "id": "MbFuVtCeiFOdeABj",
+      "name": "Gemini"
+    },
+    {
+      "updatedAt": "2026-05-24T23:35:26.856Z",
+      "createdAt": "2026-05-24T23:35:26.856Z",
+      "id": "PCv6oaAIUF6cx9Zc",
+      "name": "RSS"
+    }
+  ]
+}
